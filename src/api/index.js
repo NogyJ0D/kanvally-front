@@ -16,5 +16,11 @@ const post = (url, data) => {
     .catch(err => { return err.response.data })
 }
 
+const put = (url, data) => {
+  return instance.put(url, data, { withCredentials: true })
+    .then(res => { return res })
+    .catch(err => { return err.response.data })
+}
+
 export default instance
-export { get, post }
+export { get, post, put }

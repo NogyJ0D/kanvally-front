@@ -14,14 +14,21 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!user.logged) return navigate('/')
-  }, [user])
+  }, [])
+
+  const onLogout = () => {
+    dispatch(logout())
+      .then(res => {
+        if (res.payload.loggedOut) return navigate('/')
+      })
+  }
 
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex gap-4 p-2 text-white rounded-lg bg-bali-500'>
         <button
           className='px-2 py-1 font-bold border border-white rounded-lg bg-crimson-500 hover:bg-crimson-400'
-          onClick={() => dispatch(logout())}
+          onClick={onLogout}
         >
           Cerrar sesión
         </button>
