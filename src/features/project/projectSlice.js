@@ -51,7 +51,7 @@ const projectSlice = createSlice({
     members: []
   },
   reducers: {
-    clearMessage (state, action) {
+    clearProjectMessage (state, action) {
       state.error = false
       state.message = undefined
     }
@@ -117,5 +117,5 @@ const projectSlice = createSlice({
   }
 })
 
-export const { clearMessage } = projectSlice.actions
+export const { clearProjectMessage } = projectSlice.actions
 export default projectSlice.reducer

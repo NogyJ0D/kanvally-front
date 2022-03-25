@@ -14,7 +14,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!user.logged) return navigate('/')
-  }, [])
+  }, [user])
 
   const onLogout = () => {
     dispatch(logout())
