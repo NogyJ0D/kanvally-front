@@ -1,4 +1,6 @@
 const Home = () => {
+  document.title = 'Kanvally'
+
   return (
     <div className='flex flex-col items-center gap-16 text-bali-900'>
 

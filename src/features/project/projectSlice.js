@@ -39,14 +39,14 @@ const projectSlice = createSlice({
   name: 'project',
   initialState: {
     exists: false,
-    loading: false,
+    loading: true,
     error: false,
     message: undefined,
 
     id: undefined,
     name: undefined,
     idBoss: undefined,
-    logo: undefined,
+    logoUrl: undefined,
     teams: [],
     members: []
   },
@@ -57,9 +57,6 @@ const projectSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
-    builder.addCase(getById.pending, (state, action) => {
-      state.loading = true
-    })
     builder.addCase(getById.fulfilled, (state, { payload }) => {
       state.exists = true
       state.loading = false
@@ -67,7 +64,7 @@ const projectSlice = createSlice({
       state.id = payload._id
       state.name = payload.name
       state.idBoss = payload.idBoss
-      state.logo = payload.logo
+      state.logoUrl = payload.logoUrl
       state.teams = payload.teams
       state.members = payload.members
     })
@@ -77,9 +74,6 @@ const projectSlice = createSlice({
       state.message = payload
     })
 
-    builder.addCase(createProject.pending, (state, action) => {
-      state.loading = true
-    })
     builder.addCase(createProject.fulfilled, (state, { payload }) => {
       state.loading = false
     })
@@ -89,9 +83,6 @@ const projectSlice = createSlice({
       state.message = payload
     })
 
-    builder.addCase(inviteToProject.pending, (state, action) => {
-      state.loading = true
-    })
     builder.addCase(inviteToProject.fulfilled, (state, { payload }) => {
       state.loading = false
       state.message = payload
@@ -102,9 +93,6 @@ const projectSlice = createSlice({
       state.message = payload
     })
 
-    builder.addCase(expelFromProject.pending, (state, action) => {
-      state.loading = true
-    })
     builder.addCase(expelFromProject.fulfilled, (state, { payload }) => {
       state.loading = false
       state.message = payload

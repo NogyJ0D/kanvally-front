@@ -43,7 +43,7 @@ const userSlice = createSlice({
   name: 'user',
   initialState: {
     logged: false,
-    loading: false,
+    loading: true,
     error: false,
     message: undefined,
 
@@ -58,9 +58,6 @@ const userSlice = createSlice({
   },
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(login.pending, (state, action) => {
-      state.loading = true
-    })
     builder.addCase(login.fulfilled, (state, { payload }) => {
       state.loading = false
       state.logged = true
@@ -79,9 +76,6 @@ const userSlice = createSlice({
       state.message = payload
     })
 
-    builder.addCase(autologin.pending, (state, action) => {
-      state.loading = true
-    })
     builder.addCase(autologin.fulfilled, (state, { payload }) => {
       state.loading = false
       state.logged = true
@@ -99,9 +93,6 @@ const userSlice = createSlice({
       state.logged = false
     })
 
-    builder.addCase(getProjects.pending, (state, action) => {
-      state.loading = true
-    })
     builder.addCase(getProjects.fulfilled, (state, { payload }) => {
       state.loading = false
       state.projects = payload
@@ -112,9 +103,6 @@ const userSlice = createSlice({
       state.message = payload
     })
 
-    builder.addCase(logout.pending, (state, action) => {
-      state.loading = true
-    })
     builder.addCase(logout.fulfilled, (state, action) => {
       state.loading = false
       state.logged = false
@@ -129,9 +117,6 @@ const userSlice = createSlice({
       state.projects = []
     })
 
-    builder.addCase(signup.pending, (state, action) => {
-      state.loading = true
-    })
     builder.addCase(signup.fulfilled, (state, { payload }) => {
       state.loading = false
       state.logged = true

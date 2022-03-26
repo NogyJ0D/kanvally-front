@@ -4,7 +4,6 @@ import { get, post, put } from '../../api'
 export const createTeam = createAsyncThunk('team/createTeam', ({ projectId, data }, thunkAPI) => {
   return post(`/teams/${projectId}`, data)
     .then(res => {
-      console.log(res)
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data
     })
@@ -12,6 +11,14 @@ export const createTeam = createAsyncThunk('team/createTeam', ({ projectId, data
 
 export const getTeamById = createAsyncThunk('team/getTeamById', (id, thunkAPI) => {
   return get(`/teams/${id}`)
+    .then(res => {
+      if (res.fail) return thunkAPI.rejectWithValue(res.err)
+      else return res.data
+    })
+})
+
+export const createTask = createAsyncThunk('team/createTask', (data, thunkAPI) => {
+  return post('/tasks', data)
     .then(res => {
       console.log(res)
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
@@ -23,7 +30,7 @@ const teamSlice = createSlice({
   name: 'user',
   initialState: {
     exists: false,
-    loading: false,
+    loading: true,
     error: false,
     message: undefined,
 
@@ -54,9 +61,6 @@ const teamSlice = createSlice({
       state.message = payload
     })
 
-    builder.addCase(getTeamById.pending, (state, action) => {
-      state.loading = true
-    })
     builder.addCase(getTeamById.fulfilled, (state, { payload }) => {
       state.loading = false
       state.exists = true
@@ -69,6 +73,19 @@ const teamSlice = createSlice({
       state.tasks = payload.tasks
     })
     builder.addCase(getTeamById.rejected, (state, { payload }) => {
+      state.loading = false
+      state.error = true
+      state.message = payload
+    })
+
+    builder.addCase(createTask.pending, (state, { payload }) => {
+      state.loading = true
+    })
+    builder.addCase(createTask.fulfilled, (state, { payload }) => {
+      state.loading = false
+      state.tasks = payload.tasks
+    })
+    builder.addCase(createTask.rejected, (state, { payload }) => {
       state.loading = false
       state.error = true
       state.message = payload

@@ -13,7 +13,8 @@ const Dashboard = () => {
   const [visible, setVisible] = useState(0)
 
   useEffect(() => {
-    if (!user.logged) return navigate('/')
+    if (!user.loading && !user.logged) return navigate('/')
+    else document.title = 'Kanvally - Dashboard'
   }, [user])
 
   const onLogout = () => {

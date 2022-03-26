@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { URL } from '../config'
 import { clearProjectMessage, expelFromProject, getById, inviteToProject } from '../features/project/projectSlice'
 import { clearTeamMessage, createTeam } from '../features/team/teamSlice'
-import Modal from '../layouts/Modal'
+import Modal from '../components/Modal'
 
 const Project = () => {
   const dispatch = useDispatch()
@@ -19,11 +20,14 @@ const Project = () => {
   const [openTeam, setOpenTeam] = useState(false)
 
   useEffect(() => {
-    dispatch(getById({ id, userid: user.id }))
-      .then((res) => {
-        if (!res.payload?.members?.some(el => el._id._id === user.id) || res.error) navigate('/dashboard')
-      })
-  }, [])
+    if (!user.loading) {
+      dispatch(getById({ id, userid: user.id }))
+      if (!project.loading) {
+        if (project.exists) document.title = `Kanvally - ${project.name}`
+        else navigate('/dashboard')
+      }
+    }
+  }, [user])
 
   useEffect(() => {
     dispatch(clearProjectMessage())
@@ -127,7 +131,7 @@ const Project = () => {
       }
       <div className='flex gap-4'>
         <div className='flex flex-col gap-4 p-4 text-center rounded-lg bg-bali-500 w-max'>
-          <img src={project.logo} alt={project.name} className='bg-white/50' width='250' height='250' />
+          <img src={URL + project.logoUrl} alt={project.name} className='bg-white/50' width='250' height='250' />
           <h2 className='text-3xl font-bold text-bali-900'>{project.name}</h2>
           <button onClick={() => setOpenMembers(true)} className='px-2 py-1 font-bold text-white border-2 border-white rounded-lg bg-crimson-500'>Ver miembros</button>
           {
@@ -152,7 +156,7 @@ const Project = () => {
                     to={`/team/${team._id}`}
                     className='flex flex-col items-center mx-auto text-xl font-semibold text-white border-2 border-white rounded-b-lg bg-crimson-500 w-max'
                   >
-                    <img src={team.logo} alt={team.name} className='object-cover w-52 h-52 bg-white/50' />
+                    <img src={URL + team.logoUrl} alt={team.name} className='object-cover w-52 h-52 bg-white/50' />
                     <h2 className='mt-auto'>{team.name}</h2>
                   </Link>
                 )

@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
+import { URL } from '../config'
 import { createProject } from '../features/project/projectSlice'
 import { getProjects } from '../features/user/userSlice'
-import Modal from '../layouts/Modal'
+import Modal from '../components/Modal'
 
 const ProjectsDash = ({ user }) => {
   const [openCreate, setOpenCreate] = useState(false)
@@ -22,7 +23,7 @@ const ProjectsDash = ({ user }) => {
 
   useEffect(() => {
     if (!user.loading && user.logged && user.role !== 0) dispatch(getProjects(user.id))
-  }, [])
+  }, [user.loading])
 
   return (
     <div className='flex flex-col gap-4 p-4 rounded-lg bg-bali-500'>
@@ -68,7 +69,7 @@ const ProjectsDash = ({ user }) => {
               to={`/project/${project._id}`}
               className='flex flex-col items-center mx-auto text-xl font-semibold text-white border-2 border-white rounded-b-lg bg-crimson-500 w-max'
             >
-              <img src={project.logo} alt={project.name} className='object-fill w-64 h-64 bg-white/50' />
+              <img src={URL + project.logoUrl} alt={project.name} className='object-fill w-64 h-64 bg-white/50' />
               <h2 className='mt-auto'>{project.name}</h2>
             </Link>
           )
