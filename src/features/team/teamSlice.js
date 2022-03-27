@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { get, post, put } from '../../api'
+import { del, get, post, put } from '../../api'
 
 export const createTeam = createAsyncThunk('team/createTeam', ({ projectId, data }, thunkAPI) => {
   return post(`/teams/${projectId}`, data)
@@ -17,8 +17,26 @@ export const getTeamById = createAsyncThunk('team/getTeamById', (id, thunkAPI) =
     })
 })
 
-export const createTask = createAsyncThunk('team/createTask', (data, thunkAPI) => {
-  return post('/tasks', data)
+export const inviteToTeam = createAsyncThunk('team/inviteToTeam', (data, thunkAPI) => {
+  return put(`/teams/invite/${data.teamId}`, { userid: data.userid, role: data.role })
+    .then(res => {
+      console.log(res)
+      if (res.fail) return thunkAPI.rejectWithValue(res.err)
+      else return res.data
+    })
+})
+
+export const changeRole = createAsyncThunk('team/changeRole', ({ teamId, userId, userRole }, thunkAPI) => {
+  return put(`/teams/role/${teamId}`, ({ userId, userRole }))
+    .then(res => {
+      console.log(res)
+      if (res.fail) return thunkAPI.rejectWithValue(res.err)
+      else return res.data
+    })
+})
+
+export const expelFromTeam = createAsyncThunk('team/expelFromTeam', ({ teamId, userId }, thunkAPI) => {
+  return put(`/teams/expel/${teamId}/${userId}`)
     .then(res => {
       console.log(res)
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
@@ -78,14 +96,37 @@ const teamSlice = createSlice({
       state.message = payload
     })
 
-    builder.addCase(createTask.pending, (state, { payload }) => {
+    builder.addCase(inviteToTeam.pending, (state, action) => {
       state.loading = true
     })
-    builder.addCase(createTask.fulfilled, (state, { payload }) => {
+    builder.addCase(inviteToTeam.fulfilled, (state, { payload }) => {
       state.loading = false
-      state.tasks = payload.tasks
     })
-    builder.addCase(createTask.rejected, (state, { payload }) => {
+    builder.addCase(inviteToTeam.rejected, (state, { payload }) => {
+      state.loading = false
+      state.error = true
+      state.message = payload
+    })
+
+    builder.addCase(changeRole.pending, (state, action) => {
+      state.loading = true
+    })
+    builder.addCase(changeRole.fulfilled, (state, { payload }) => {
+      state.loading = false
+    })
+    builder.addCase(changeRole.rejected, (state, { payload }) => {
+      state.loading = false
+      state.error = true
+      state.message = payload
+    })
+
+    builder.addCase(expelFromTeam.pending, (state, action) => {
+      state.loading = true
+    })
+    builder.addCase(expelFromTeam.fulfilled, (state, { payload }) => {
+      state.loading = false
+    })
+    builder.addCase(expelFromTeam.rejected, (state, { payload }) => {
       state.loading = false
       state.error = true
       state.message = payload

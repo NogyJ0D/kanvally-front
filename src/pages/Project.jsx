@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { URL } from '../config'
-import { clearProjectMessage, expelFromProject, getById, inviteToProject } from '../features/project/projectSlice'
+import { clearProjectMessage, deleteProject, expelFromProject, getById, inviteToProject } from '../features/project/projectSlice'
 import { clearTeamMessage, createTeam } from '../features/team/teamSlice'
 import Modal from '../components/Modal'
 
@@ -18,6 +18,7 @@ const Project = () => {
   const [openMembers, setOpenMembers] = useState(false)
   const [openInvite, setOpenInvite] = useState(false)
   const [openTeam, setOpenTeam] = useState(false)
+  const [openDelete, setOpenDelete] = useState(false)
 
   useEffect(() => {
     if (!user.loading) {
@@ -32,7 +33,7 @@ const Project = () => {
   useEffect(() => {
     dispatch(clearProjectMessage())
     dispatch(clearTeamMessage())
-  }, [openMembers, openInvite, openTeam])
+  }, [openMembers, openInvite, openTeam, openDelete])
 
   const onExpel = (userId) => {
     dispatch(expelFromProject({ projectId: project.id, userId }))
@@ -53,6 +54,13 @@ const Project = () => {
       })
   }
 
+  const onDelete = () => {
+    dispatch(deleteProject(project.id))
+      .then(res => {
+        if (res.meta.requestStatus === 'fulfilled') return navigate('/dashboard')
+      })
+  }
+
   return (
     <>
       {
@@ -63,8 +71,8 @@ const Project = () => {
                 return (
                   <div key={member._id._id} className='relative flex items-center justify-between w-full gap-4 px-2 border-b group border-ebony-clay-500'>
                     <p className='text-lg font-semibold'>{member._id.email}</p>
-                    <div className='absolute hidden gap-4 px-2 py-1 text-xl font-bold text-white w-max max-h-min bg-black/80 group-hover:flex inset-x-full'>
-                      <small>Usuario:</small>
+                    <div className='absolute hidden gap-4 rounded-md px-2 text-xl font-bold text-white w-max max-h-min bg-black/80 group-hover:flex inset-y-full'>
+                      <small className='select-none'>Usuario:</small>
                       <p>{member._id.username}</p>
                     </div>
                     {
@@ -129,6 +137,15 @@ const Project = () => {
             <p className='w-full text-xl font-bold text-center text-crimson-500'>{project.message}</p>
           </Modal>
       }
+      {
+        openDelete &&
+          <Modal setOpenModal={setOpenDelete} title='Eliminar el proyecto'>
+            <p>¿Realmente deseas eliminar {project.name}?</p>
+            <button className='px-2 mx-auto font-bold text-white border border-white rounded-lg w-full bg-crimson-500' onClick={() => onDelete()}>Si</button>
+            <button className='px-2 mx-auto font-bold text-white border border-white rounded-lg w-full bg-crimson-500' onClick={() => setOpenDelete(false)}>No</button>
+            <p className='w-full text-xl font-bold text-center text-crimson-500'>{project.message}</p>
+          </Modal>
+      }
       <div className='flex gap-4'>
         <div className='flex flex-col gap-4 p-4 text-center rounded-lg bg-bali-500 w-max'>
           <img src={URL + project.logoUrl} alt={project.name} className='bg-white/50' width='250' height='250' />
@@ -140,12 +157,13 @@ const Project = () => {
                 <>
                   <button onClick={() => setOpenInvite(true)} className='px-2 py-1 font-bold text-white border-2 border-white rounded-lg bg-crimson-500'>Invitar usuario</button>
                   <button onClick={() => setOpenTeam(true)} className='px-2 py-1 font-bold text-white border-2 border-white rounded-lg bg-crimson-500'>Crear equipo</button>
+                  <button onClick={() => setOpenDelete(true)} className='px-2 py-1 font-bold text-white border-2 border-white rounded-lg bg-crimson-500'>Eliminar proyecto</button>
                 </>
                 )
               : <></>
           }
         </div>
-        <div className='grid w-full grid-cols-4 gap-4 p-4 text-center rounded-lg bg-bali-500'>
+        <div className='grid w-full grid-cols-4 auto-rows-max gap-4 p-4 text-center rounded-lg bg-bali-500'>
           <h3 className='col-span-4 text-2xl font-bold text-center'>Equipos</h3>
           {
             project.teams.map(team => {
@@ -154,7 +172,7 @@ const Project = () => {
                   <Link
                     key={team._id}
                     to={`/team/${team._id}`}
-                    className='flex flex-col items-center mx-auto text-xl font-semibold text-white border-2 border-white rounded-b-lg bg-crimson-500 w-max'
+                    className='flex h-max flex-col items-center mx-auto text-xl font-semibold text-white border-2 border-white rounded-b-lg bg-crimson-500 w-max'
                   >
                     <img src={URL + team.logoUrl} alt={team.name} className='object-cover w-52 h-52 bg-white/50' />
                     <h2 className='mt-auto'>{team.name}</h2>

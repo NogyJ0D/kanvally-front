@@ -23,5 +23,11 @@ const put = (url, data) => {
     .catch(err => { return err.response.data })
 }
 
+const del = (url) => {
+  return instance.delete(url, { withCredentials: true })
+    .then(res => { return res })
+    .catch(err => { return err.response.data })
+}
+
 export default instance
-export { get, post, put }
+export { get, post, put, del }

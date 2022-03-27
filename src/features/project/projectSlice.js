@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { get, post, put } from '../../api'
+import { del, get, post, put } from '../../api'
 
 export const getById = createAsyncThunk('project/getById', ({ id, userid }, thunkAPI) => {
   return get(`/projects/${id}/${userid}/all`)
@@ -32,6 +32,15 @@ export const expelFromProject = createAsyncThunk('project/expelFromProject', (da
       console.log(res)
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data.message
+    })
+})
+
+export const deleteProject = createAsyncThunk('project/deleteProject', (projectId, thunkAPI) => {
+  return del(`/projects/${projectId}`)
+    .then(res => {
+      console.log(res)
+      if (res.fail) return thunkAPI.rejectWithValue(res.err)
+      else return res.data
     })
 })
 
@@ -98,6 +107,25 @@ const projectSlice = createSlice({
       state.message = payload
     })
     builder.addCase(expelFromProject.rejected, (state, { payload }) => {
+      state.loading = false
+      state.error = true
+      state.message = payload
+    })
+
+    builder.addCase(deleteProject.fulfilled, (state, action) => {
+      state.exists = false
+      state.loading = true
+      state.error = false
+      state.message = undefined
+
+      state.id = undefined
+      state.name = undefined
+      state.idBoss = undefined
+      state.logoUrl = undefined
+      state.teams = []
+      state.members = []
+    })
+    builder.addCase(deleteProject.rejected, (state, { payload }) => {
       state.loading = false
       state.error = true
       state.message = payload
