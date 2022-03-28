@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { del, get, post, put } from '../../api'
+import FormData from 'form-data'
+import { del, get, postFile, put } from '../../api'
 
 export const getById = createAsyncThunk('project/getById', ({ id, userid }, thunkAPI) => {
   return get(`/projects/${id}/${userid}/all`)
@@ -10,7 +11,12 @@ export const getById = createAsyncThunk('project/getById', ({ id, userid }, thun
 })
 
 export const createProject = createAsyncThunk('project/createProject', (data, thunkAPI) => {
-  return post('/projects', data)
+  const formData = new FormData()
+  formData.append('idBoss', data.idBoss)
+  formData.append('name', data.name)
+  formData.append('logo', data.logo[0], data.logo[0].name)
+  // console.table(Object.fromEntries(formData))
+  return postFile('/projects', formData)
     .then(res => {
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data
@@ -92,6 +98,9 @@ const projectSlice = createSlice({
       state.message = payload
     })
 
+    builder.addCase(inviteToProject.pending, (state, action) => {
+      state.message = 'Enviando invitación...'
+    })
     builder.addCase(inviteToProject.fulfilled, (state, { payload }) => {
       state.loading = false
       state.message = payload

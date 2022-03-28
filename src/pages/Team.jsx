@@ -19,7 +19,6 @@ const Team = () => {
   const [openCreate, setOpenCreate] = useState(false)
   const [openMembers, setOpenMembers] = useState(false)
   const [openInvite, setOpenInvite] = useState(false)
-  const [tasksList, setTasksList] = useState([[], [], [], [], [], [], []])
 
   useEffect(() => {
     if (!user.loading && user.logged) {
@@ -29,9 +28,6 @@ const Team = () => {
           else {
             if (!team.loading && team.exists) {
               if (project.loading || !project.exists) dispatch(getById({ id: team.idProject, userid: user.id }))
-              team.tasks.forEach(task => {
-                setTasksList([...tasksList, tasksList[task.state].push(task)])
-              })
             }
           }
         })
@@ -42,7 +38,7 @@ const Team = () => {
     dispatch(clearTeamMessage())
   }, [openMembers, openCreate])
 
-  const onSubmit = ({ name, description, state }) => {
+  const onNewTask = ({ name, description, state }) => {
     dispatch(createTask({
       idProject: team.idProject,
       idTeam: team.id,
@@ -117,14 +113,15 @@ const Team = () => {
           <Modal setOpenModal={setOpenCreate} title='Crear nueva tarea'>
             <form
               className='flex flex-col w-full gap-4 mx-auto mt-2'
-              onSubmit={handleSubmit(onSubmit)}
+              onSubmit={handleSubmit(onNewTask)}
             >
               <input
                 className='px-4 py-1 text-black border rounded-lg outline-none border-ebony-clay-500 placeholder:text-black/50'
                 type='text'
                 required
+                maxLength='24'
                 placeholder='Nombre de la tarea'
-                {...register('name', { required: true })}
+                {...register('name', { required: true, maxLength: 24 })}
               />
               <textarea
                 className='h-32 px-4 py-1 text-black border rounded-lg outline-none border-ebony-clay-500 placeholder:text-black/50'
@@ -137,6 +134,7 @@ const Team = () => {
                 className='px-4 py-1 text-black bg-white border rounded-lg outline-none border-ebony-clay-500'
                 required
                 id='state'
+                defaultValue='2'
                 {...register('state', { required: true })}
               >
                 <option value='0'>CONGELADO</option>
@@ -217,13 +215,13 @@ const Team = () => {
 
         <div className='p-4 rounded-lg bg-bali-500'>
           <div className='flex space-x-8 overflow-x-auto'>
-            <TaskList tasks={tasksList[0]} color='sky-300' state='CONGELADO' />
-            <TaskList tasks={tasksList[1]} color='red-500' state='EMERGENCIA' />
-            <TaskList tasks={tasksList[2]} color='orange-500' state='POR HACER' />
-            <TaskList tasks={tasksList[3]} color='yellow-500' state='HACIENDO' />
-            <TaskList tasks={tasksList[4]} color='blue-500' state='PROBANDO' />
-            <TaskList tasks={tasksList[5]} color='neutral-200' state='LISTO PARA APROBACIÓN' />
-            <TaskList tasks={tasksList[6]} color='lime-500' state='COMPLETADO' />
+            <TaskList tasks={team.tasks[0]} color='sky-300' state='CONGELADO' />
+            <TaskList tasks={team.tasks[1]} color='red-500' state='EMERGENCIA' />
+            <TaskList tasks={team.tasks[2]} color='orange-500' state='POR HACER' />
+            <TaskList tasks={team.tasks[3]} color='yellow-500' state='HACIENDO' />
+            <TaskList tasks={team.tasks[4]} color='blue-500' state='PROBANDO' />
+            <TaskList tasks={team.tasks[5]} color='neutral-200' state='LISTO PARA APROBACIÓN' />
+            <TaskList tasks={team.tasks[6]} color='lime-500' state='COMPLETADO' />
           </div>
         </div>
 

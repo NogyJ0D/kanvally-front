@@ -47,8 +47,8 @@ const Project = () => {
       .then(res => console.log(res))
   }
 
-  const onTeamCreate = ({ name, idLeader }) => {
-    dispatch(createTeam({ projectId: project.id, data: { name, idLeader } }))
+  const onTeamCreate = ({ name, idLeader, logo }) => {
+    dispatch(createTeam({ projectId: project.id, data: { name, idLeader, logo } }))
       .then(res => {
         if (res.meta.requestStatus === 'fulfilled') return navigate(0)
       })
@@ -110,12 +110,19 @@ const Project = () => {
       {
         openTeam &&
           <Modal openModal={openTeam} setOpenModal={setOpenTeam} title='Crear nuevo equipo'>
-            <form onSubmit={handleSubmit(onTeamCreate)} className='flex flex-col gap-2 mx-auto'>
+            <form onSubmit={handleSubmit(onTeamCreate)} className='flex w-full flex-col gap-2 mx-auto'>
               <input
                 type='text'
                 className='px-4 py-1 text-black border rounded-full outline-none border-ebony-clay-500 placeholder:text-black/50'
                 placeholder='Nombre del equipo'
                 required {...register('name', { required: true })}
+              />
+              <label htmlFor='file' className='font-semibold text-xl'>Logo del equipo:</label>
+              <input
+                id='file'
+                className='pl-8 file:px-4 file:py-1 file:bg-crimson-500 file:text-white file:border-ebony-clay-500 file:border file:rounded-full file:outline-none'
+                type='file'
+                {...register('logo')}
               />
               <label htmlFor='idLeader'>Líder del equipo:</label>
               <select
@@ -127,7 +134,7 @@ const Project = () => {
                 {
                   project.members.map(member => {
                     return (
-                      <option key={member._id._id} value={member._id._id}>{member._id.email}</option>
+                      <option key={member._id._id} value={member._id._id}>{member._id.email} ({member._id.username})</option>
                     )
                   })
                 }

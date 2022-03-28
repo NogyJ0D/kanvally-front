@@ -17,6 +17,12 @@ const post = (url, data) => {
     .catch(err => { return err.response.data })
 }
 
+const postFile = (url, data) => {
+  return instance.post(url, data, { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' } })
+    .then(res => { return res })
+    .catch(err => { return err.response.data })
+}
+
 const put = (url, data) => {
   return instance.put(url, data, { withCredentials: true })
     .then(res => { return res })
@@ -30,4 +36,4 @@ const del = (url) => {
 }
 
 export default instance
-export { get, post, put, del }
+export { get, post, postFile, put, del }

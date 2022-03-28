@@ -1,8 +1,21 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { del, get, post, put } from '../../api'
+import FormData from 'form-data'
+import { del, get, post, postFile, put } from '../../api'
+
+// export const createTeam = createAsyncThunk('team/createTeam', ({ projectId, data }, thunkAPI) => {
+//   return post(`/teams/${projectId}`, data)
+//     .then(res => {
+//       if (res.fail) return thunkAPI.rejectWithValue(res.err)
+//       else return res.data
+//     })
+// })
 
 export const createTeam = createAsyncThunk('team/createTeam', ({ projectId, data }, thunkAPI) => {
-  return post(`/teams/${projectId}`, data)
+  const formData = new FormData()
+  formData.append('name', data.name)
+  formData.append('idLeader', data.idLeader)
+  formData.append('logo', data.logo[0], data.logo[0].name)
+  return postFile(`/teams/${projectId}`, formData)
     .then(res => {
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data
@@ -54,15 +67,30 @@ const teamSlice = createSlice({
 
     id: undefined,
     name: undefined,
+    logoUrl: undefined,
     idProject: undefined,
     idLeader: undefined,
     members: [],
-    tasks: []
+    tasks: {}
   },
   reducers: {
     clearTeamMessage (state, action) {
       state.error = false
       state.message = undefined
+    },
+    clearTeam (state, action) {
+      state.exists = false
+      state.loading = true
+      state.error = false
+      state.message = undefined
+
+      state.id = undefined
+      state.name = undefined
+      state.idProject = undefined
+      state.idLeader = undefined
+      state.logoUrl = undefined
+      state.members = []
+      state.tasks = []
     }
   },
   extraReducers: (builder) => {
@@ -79,6 +107,12 @@ const teamSlice = createSlice({
       state.message = payload
     })
 
+    // builder.addCase(getTeamById.pending, (state, action) => {
+    //   state.loading = true
+    //   state.exists = false
+    //   state.error = false
+    //   state.message = undefined
+    // })
     builder.addCase(getTeamById.fulfilled, (state, { payload }) => {
       state.loading = false
       state.exists = true
@@ -89,6 +123,7 @@ const teamSlice = createSlice({
       state.idLeader = payload.idLeader
       state.members = payload.members
       state.tasks = payload.tasks
+      state.logoUrl = payload.logoUrl
     })
     builder.addCase(getTeamById.rejected, (state, { payload }) => {
       state.loading = false
@@ -134,5 +169,5 @@ const teamSlice = createSlice({
   }
 })
 
-export const { clearTeamMessage } = teamSlice.actions
+export const { clearTeamMessage, clearTeam } = teamSlice.actions
 export default teamSlice.reducer

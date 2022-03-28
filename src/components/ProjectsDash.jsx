@@ -42,10 +42,11 @@ const ProjectsDash = ({ user }) => {
                 {...register('name', { required: true })}
               />
 
+              <label htmlFor='file' className='font-semibold text-xl'>Logo del proyecto:</label>
               <input
-                className='px-4 py-1 text-black border rounded-full outline-none border-ebony-clay-500 placeholder:text-black/50'
-                type='text'
-                placeholder='Logo'
+                id='file'
+                className='pl-8 file:px-4 file:py-1 file:bg-crimson-500 file:text-white file:border-ebony-clay-500 file:border file:rounded-full file:outline-none'
+                type='file'
                 {...register('logo')}
               />
               <button className='w-full py-1 text-xl text-white border border-black rounded-full bg-crimson-500 place-self-center'>Crear</button>

@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { get, post, put, del } from '../../api'
+import { post, put, del } from '../../api'
 
-export const createComment = createAsyncThunk('task/createcomment', ({ teamId, idTask, username, text }, thunkAPI) => {
+export const createComment = createAsyncThunk('task/createComment', ({ teamId, idTask, username, text }, thunkAPI) => {
   return put(`/tasks/comment/team/${teamId}/option/add/idTask/${idTask}`, ({ username, text }))
     .then(res => {
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
@@ -22,7 +22,17 @@ export const createTask = createAsyncThunk('task/createTask', (data, thunkAPI) =
   return post('/tasks', data)
     .then(res => {
       console.log(res)
-      if (res.fail) return thunkAPI.rejectWithValue(res.err)
+      if (res.fail) return thunkAPI.rejectWithValue(res.err || res.errorMessages)
+      else return res.data
+    })
+})
+
+export const changeState = createAsyncThunk('task/changeState', (data, thunkAPI) => {
+  console.log(data.state)
+  return put(`/tasks/state/team/${data.teamId}/task/${data.taskId}`, { state: data.state })
+    .then(res => {
+      console.log(res)
+      if (res.fail) return thunkAPI.rejectWithValue(res.err || res.errorMessages)
       else return res.data
     })
 })
@@ -73,6 +83,12 @@ const taskSlice = createSlice({
       state.tasks = payload.tasks
     })
     builder.addCase(createTask.rejected, (state, { payload }) => {
+      state.loading = false
+      state.error = true
+      state.message = payload
+    })
+
+    builder.addCase(changeState.rejected, (state, { payload }) => {
       state.loading = false
       state.error = true
       state.message = payload
