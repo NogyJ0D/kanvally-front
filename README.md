@@ -2,8 +2,8 @@
 
 ### Por hacer:
 1. Project page (editar)
-2. Team page (editar, cambiar estado de tareas(React DnD))
-3. Task modal (editar, , eliminar comentario, subir archivo)
+2. Team page (editar)
+3. Task modal (editar)
 4. User view (username, email, proyectos que compartimos)
 5. Mostrar las invitaciones pendientes en el perfil
 
@@ -13,8 +13,8 @@
 3. Signup page
 4. Dashboard page (crear proyecto, abrir proyecto)
 5. Project page (ver miembros, invitar, crear equipo, ver equipos)
-6. Team page (crear tarea, ver tareas, abrir tarea, añadir miembro, eliminar miembro, cambiar rol miembro)
-7. Task modal (eliminar tarea, crear comentario, cambiar estado)
+6. Team page (crear tarea, ver tareas, abrir tarea, añadir miembro, eliminar miembro, cambiar rol miembro, cambiar estado de tareas(React DnD))
+7. Task modal (eliminar tarea, crear comentario, cambiar estado, eliminar comentario, subir archivo)
 8. Pasar a componente el modal con un Children
 
 ### Paleta random elegida:

@@ -5,8 +5,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Modal from '../components/Modal'
 import TaskList from '../components/TaskList'
 import { getById } from '../features/project/projectSlice'
-import { createTask } from '../features/task/taskSlice'
+import { changeState, createTask } from '../features/task/taskSlice'
 import { changeRole, clearTeamMessage, expelFromTeam, getTeamById, inviteToTeam } from '../features/team/teamSlice'
+import { DragDropContext } from 'react-beautiful-dnd'
 
 const Team = () => {
   const { register, handleSubmit } = useForm()
@@ -19,6 +20,7 @@ const Team = () => {
   const [openCreate, setOpenCreate] = useState(false)
   const [openMembers, setOpenMembers] = useState(false)
   const [openInvite, setOpenInvite] = useState(false)
+  const [userRole, setUserRole] = useState('')
 
   useEffect(() => {
     if (!user.loading && user.logged) {
@@ -28,6 +30,7 @@ const Team = () => {
           else {
             if (!team.loading && team.exists) {
               if (project.loading || !project.exists) dispatch(getById({ id: team.idProject, userid: user.id }))
+              setUserRole(team.members.filter(member => member._id._id === user.id)[0].role)
             }
           }
         })
@@ -49,7 +52,6 @@ const Team = () => {
       state
     }))
       .then((res) => {
-        console.log(res)
         if (res.meta.requestStatus === 'fulfilled') return navigate(0)
       })
   }
@@ -69,11 +71,18 @@ const Team = () => {
       .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
   }
 
+  const onStateChange = (task) => {
+    if (!task.destination || (task.source.droppableId === task.destination.droppableId)) return
+    dispatch(changeState({ teamId: team.id, taskId: task.draggableId, state: task.destination.droppableId }))
+      .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
+  }
+
   return (
     <>
       {
         openMembers &&
           <Modal openModal={openMembers} setOpenModal={setOpenMembers} title='Miembros del proyecto'>
+            <p className='p-1 font-bold text-center border border-black rounded-lg bg-red-500/50'>Los Miembros solo pueden actualizar tareas hasta el estado "Probando", los Testers hasta "Listo".</p>
             {
               team.members.map(member => {
                 return (
@@ -92,14 +101,16 @@ const Team = () => {
                           )
                         : <p>{member.role}</p>
                     }
-                    <div className='absolute hidden gap-4 rounded-md px-2 text-xl font-bold text-white w-max max-h-min bg-black/80 group-hover:flex inset-y-full'>
+                    <div className='absolute hidden gap-4 px-2 text-xl font-bold text-white rounded-md w-max max-h-min bg-black/80 group-hover:flex inset-y-full'>
                       <small className='select-none'>Usuario:</small>
                       <p>{member._id.username}</p>
                     </div>
                     {
                       (team.idLeader === user.id) && (member._id._id !== user.id)
                         ? <button onClick={() => onExpel(member._id._id)} className='px-2 font-bold text-white border border-white rounded-lg w-max bg-crimson-500'>Expulsar</button>
-                        : <></>
+                        : (member._id._id === user.id)
+                            ? <p className='text-xl font-semibold'>Yo</p>
+                            : null
                     }
                   </div>
                 )
@@ -152,7 +163,7 @@ const Team = () => {
       {
         openInvite &&
           <Modal openModal={openInvite} setOpenModal={setOpenInvite} title='Invitar usuario al equipo'>
-            <form onSubmit={handleSubmit(onInvite)} className='flex flex-col gap-2 w-full'>
+            <form onSubmit={handleSubmit(onInvite)} className='flex flex-col w-full gap-2'>
               <label htmlFor='userid'>Usuario del proyecto:</label>
               <select
                 className='px-4 py-1 text-black bg-white border rounded-full outline-none border-ebony-clay-500'
@@ -215,13 +226,15 @@ const Team = () => {
 
         <div className='p-4 rounded-lg bg-bali-500'>
           <div className='flex space-x-8 overflow-x-auto'>
-            <TaskList tasks={team.tasks[0]} color='sky-300' state='CONGELADO' />
-            <TaskList tasks={team.tasks[1]} color='red-500' state='EMERGENCIA' />
-            <TaskList tasks={team.tasks[2]} color='orange-500' state='POR HACER' />
-            <TaskList tasks={team.tasks[3]} color='yellow-500' state='HACIENDO' />
-            <TaskList tasks={team.tasks[4]} color='blue-500' state='PROBANDO' />
-            <TaskList tasks={team.tasks[5]} color='neutral-200' state='LISTO PARA APROBACIÓN' />
-            <TaskList tasks={team.tasks[6]} color='lime-500' state='COMPLETADO' />
+            <DragDropContext onDragEnd={(res) => onStateChange(res)}>
+              <TaskList tasks={team.tasks[0]} userRole={userRole} index='0' color='sky-300' state='CONGELADO' />
+              <TaskList tasks={team.tasks[1]} userRole={userRole} index='1' color='red-500' state='EMERGENCIA' />
+              <TaskList tasks={team.tasks[2]} userRole={userRole} index='2' color='orange-500' state='POR HACER' />
+              <TaskList tasks={team.tasks[3]} userRole={userRole} index='3' color='yellow-500' state='HACIENDO' />
+              <TaskList tasks={team.tasks[4]} userRole={userRole} index='4' color='blue-500' state='PROBANDO' />
+              <TaskList tasks={team.tasks[5]} disabledBool={userRole !== 'Tester' && userRole !== 'Líder'} userRole={userRole} index='5' color='neutral-200' state='LISTO PARA APROBACIÓN' />
+              <TaskList tasks={team.tasks[6]} disabledBool={userRole !== 'Líder'} userRole={userRole} index='6' color='lime-500' state='COMPLETADO' />
+            </DragDropContext>
           </div>
         </div>
 
@@ -231,13 +244,3 @@ const Team = () => {
 }
 
 export default Team
-/*
-tasksList: {
-  0: [],
-  1: [],
-  2: [],
-  3: [],
-  4: [],
-  5: [],
-}
-*/

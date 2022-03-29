@@ -3,10 +3,11 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { changeState, createComment, deleteTask } from '../features/task/taskSlice'
+import { URL } from '../config'
+import { changeState, createComment, deleteComment, deleteTask } from '../features/task/taskSlice'
 import Modal from './Modal'
 
-const TaskItem = ({ task, color }) => {
+const TaskItem = ({ task, color, userRole, provided, innerRef }) => {
   const { register: register1, handleSubmit: handleSubmit1 } = useForm()
   const { register: register2, handleSubmit: handleSubmit2 } = useForm()
   const [openTask, setOpenTask] = useState(false)
@@ -15,7 +16,6 @@ const TaskItem = ({ task, color }) => {
   const taskState = useSelector(state => state.task)
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const userRole = team.members.filter(member => member._id._id === user.id)[0].role
 
   const onTaskDelete = () => {
     dispatch(deleteTask({ teamId: team.id, taskId: task._id }))
@@ -25,12 +25,15 @@ const TaskItem = ({ task, color }) => {
       })
   }
 
-  const onNewComment = ({ text }) => {
-    dispatch(createComment({ teamId: team.id, idTask: task._id, username: user.username, text }))
+  const onNewComment = ({ text, file }) => {
+    dispatch(createComment({ teamId: team.id, idTask: task._id, username: user.username, text, file }))
       .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
   }
 
-  // TODO: onDeleteComment
+  const onDelete = (id) => {
+    dispatch(deleteComment({ idTeam: team.id, idTask: task._id, idComment: id }))
+      .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
+  }
 
   const onStateChange = ({ state }) => {
     dispatch(changeState({ teamId: team.id, taskId: task._id, state }))
@@ -39,20 +42,29 @@ const TaskItem = ({ task, color }) => {
 
   return (
     <>
+      <div
+        {...provided.draggableProps}
+        {...provided.dragHandleProps}
+        ref={innerRef}
+        onClick={() => { setOpenTask(true) }} className={`p-4 text-center mx-auto bg-${color} w-full text-ebony-clay-500 text-xl font-semibold`}
+      >
+        {task.name}
+      </div>
       {
       openTask &&
         <Modal setOpenModal={setOpenTask} title={task.name} color={color}>
-          <p className='w-full font-semibold text-lg'>Hecha por: {task.author}</p>
-          <p className='w-full font-semibold text-lg'>Creada: {new Date(task.created_at).toLocaleString()}</p>
-          <p className='px-4 py-2 bg-white border border-black rounded-lg w-full text-black'>{task.description}</p>
+          <p className='w-full text-lg font-semibold'>Hecha por: {task.author}</p>
+          <p className='w-full text-lg font-semibold'>Creada: {new Date(task.created_at).toLocaleString()}</p>
+          <p className='w-full text-lg font-semibold'>Actualizada: {new Date(task.updated_at).toLocaleString()}</p>
+          <p className='w-full px-4 py-2 text-black bg-white border border-black rounded-lg'>{task.description}</p>
           {
             team.idLeader === user.id &&
               <>
-                <button onClick={() => onTaskDelete()} className='px-2 font-bold text-white border border-white rounded-lg w-full bg-crimson-500'>Eliminar tarea</button>
+                <button onClick={() => onTaskDelete()} className='w-full px-2 font-bold text-white border border-white rounded-lg bg-crimson-500'>Eliminar tarea</button>
                 <p className='w-full text-xl font-bold text-center text-crimson-500'>{taskState.message}</p>
               </>
           }
-          <form onChange={handleSubmit1(onStateChange)} className='px-2 py-1 rounded-lg flex gap-4 justify-center items-center bg-white/50'>
+          <form onChange={handleSubmit1(onStateChange)} className='flex items-center justify-center gap-4 px-2 py-1 rounded-lg bg-white/50'>
             <label className='text-xl font-semibold' htmlFor='estado'>Cambiar el estado de la tarea:</label>
             <select
               className='px-4 py-1 text-black bg-white border rounded-lg outline-none border-ebony-clay-500'
@@ -82,38 +94,52 @@ const TaskItem = ({ task, color }) => {
             <button className='px-2 font-bold text-white border border-white rounded-lg w-max bg-crimson-500'>Actualizar</button>
           </form>
 
-          <hr className='border-2 bg-black border-black w-full' />
+          <hr className='w-full bg-black border-2 border-black' />
 
           <p className='text-2xl font-semibold'>Comentarios:</p>
-          <form className='border-2 border-black w-full rounded-lg bg-white/50 px-2 py-1 flex flex-col gap-2' onSubmit={handleSubmit2(onNewComment)}>
+          <form className='flex flex-col w-full gap-2 px-2 py-1 border-2 border-black rounded-lg bg-white/50' onSubmit={handleSubmit2(onNewComment)}>
             <div className='flex justify-between'>
               <label className='text-xl font-semibold' htmlFor='text'>Nuevo comentario:</label>
-              <button className='w-max px-2 py-1 rounded-lg border border-white text-white font-semibold bg-crimson-500'>Crear</button>
+              <input type='submit' value='Enviar' className='px-2 py-1 font-semibold text-white border border-white rounded-lg w-max bg-crimson-500' />
             </div>
             <textarea
               id='text'
               required
-              className='px-4 py-2 bg-white border outline-none border-black rounded-lg w-full text-black'
+              className='w-full px-4 py-2 text-black bg-white border border-black rounded-lg outline-none'
               {...register2('text', { required: true })}
+            />
+            <label htmlFor='file' className='text-xl font-semibold'>Adjuntar archivo (opcional):</label>
+            <input
+              id='file'
+              className='pl-8 file:px-4 file:py-1 file:bg-crimson-500 file:text-white file:border-ebony-clay-500 file:border file:rounded-full file:outline-none'
+              type='file'
+              {...register2('file')}
             />
           </form>
           {
             task.comments?.map(comment => {
               return (
-                <div key={comment._id} className='border-2 border-black w-full rounded-lg bg-white/50 px-2 py-1 flex flex-col gap-2'>
+                <div key={comment._id} className='flex flex-col w-full gap-2 px-2 py-1 border-2 border-black rounded-lg bg-white/50'>
                   <div className='flex justify-between'>
-                    <p className='border border-white px-2 py-1 rounded-lg text-xl font-semibold'>{comment.username}</p>
-                    <p className='border border-white px-2 py-1 rounded-lg text-lg font-semibold'>{DateTime.fromISO(comment.created_date).toLocaleString({ day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className='px-2 py-1 text-xl font-semibold border border-white rounded-lg'>{comment.username}</p>
+                    <p className='px-2 py-1 text-lg font-semibold border border-white rounded-lg'>{DateTime.fromISO(comment.created_date).toLocaleString({ day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
-                  <p className='px-4 py-2 bg-white border outline-none border-black rounded-lg w-full text-black'>{comment.text}</p>
-                  <button className='w-max px-2 py-1 rounded-lg border border-white text-white font-semibold bg-crimson-500'>Eliminar</button>
+                  <p className='w-full px-4 py-2 text-black bg-white border border-black rounded-lg outline-none'>{comment.text}</p>
+                  <div className='flex justify-between'>
+                    {
+                      comment.fileUrl && <a href={URL + comment.fileUrl} target='_blank' rel='noreferrer' download={comment.fileKey} className='px-2 text-lg font-semibold text-blue-800 underline'>Descargar archivo</a>
+                    }
+                    {
+                      (comment.username === user.username || userRole === 'Líder') &&
+                        <button onClick={() => onDelete(comment._id)} className='px-2 py-1 font-semibold text-white border border-white rounded-lg w-max bg-crimson-500'>Eliminar</button>
+                    }
+                  </div>
                 </div>
               )
             })
           }
         </Modal>
       }
-      <button onClick={() => { setOpenTask(true) }} className={`p-4 mx-auto bg-${color} w-full text-ebony-clay-500 text-xl font-semibold`}>{task.name}</button>
     </>
   )
 }

@@ -71,14 +71,16 @@ const Project = () => {
                 return (
                   <div key={member._id._id} className='relative flex items-center justify-between w-full gap-4 px-2 border-b group border-ebony-clay-500'>
                     <p className='text-lg font-semibold'>{member._id.email}</p>
-                    <div className='absolute hidden gap-4 rounded-md px-2 text-xl font-bold text-white w-max max-h-min bg-black/80 group-hover:flex inset-y-full'>
+                    <div className='absolute hidden gap-4 px-2 text-xl font-bold text-white rounded-md w-max max-h-min bg-black/80 group-hover:flex inset-y-full'>
                       <small className='select-none'>Usuario:</small>
                       <p>{member._id.username}</p>
                     </div>
                     {
                       (project.idBoss === user.id) && (member._id._id !== user.id)
                         ? <button onClick={() => onExpel(member._id._id)} className='px-2 font-bold text-white border border-white rounded-lg w-max bg-crimson-500'>Expulsar</button>
-                        : <></>
+                        : (member._id._id === user.id)
+                            ? <p className='text-xl font-semibold'>Yo</p>
+                            : null
                     }
                     {
                       project.idBoss === member._id._id
@@ -110,14 +112,14 @@ const Project = () => {
       {
         openTeam &&
           <Modal openModal={openTeam} setOpenModal={setOpenTeam} title='Crear nuevo equipo'>
-            <form onSubmit={handleSubmit(onTeamCreate)} className='flex w-full flex-col gap-2 mx-auto'>
+            <form onSubmit={handleSubmit(onTeamCreate)} className='flex flex-col w-full gap-2 mx-auto'>
               <input
                 type='text'
                 className='px-4 py-1 text-black border rounded-full outline-none border-ebony-clay-500 placeholder:text-black/50'
                 placeholder='Nombre del equipo'
                 required {...register('name', { required: true })}
               />
-              <label htmlFor='file' className='font-semibold text-xl'>Logo del equipo:</label>
+              <label htmlFor='file' className='text-xl font-semibold'>Logo del equipo:</label>
               <input
                 id='file'
                 className='pl-8 file:px-4 file:py-1 file:bg-crimson-500 file:text-white file:border-ebony-clay-500 file:border file:rounded-full file:outline-none'
@@ -148,8 +150,8 @@ const Project = () => {
         openDelete &&
           <Modal setOpenModal={setOpenDelete} title='Eliminar el proyecto'>
             <p>¿Realmente deseas eliminar {project.name}?</p>
-            <button className='px-2 mx-auto font-bold text-white border border-white rounded-lg w-full bg-crimson-500' onClick={() => onDelete()}>Si</button>
-            <button className='px-2 mx-auto font-bold text-white border border-white rounded-lg w-full bg-crimson-500' onClick={() => setOpenDelete(false)}>No</button>
+            <button className='w-full px-2 mx-auto font-bold text-white border border-white rounded-lg bg-crimson-500' onClick={() => onDelete()}>Si</button>
+            <button className='w-full px-2 mx-auto font-bold text-white border border-white rounded-lg bg-crimson-500' onClick={() => setOpenDelete(false)}>No</button>
             <p className='w-full text-xl font-bold text-center text-crimson-500'>{project.message}</p>
           </Modal>
       }
@@ -170,7 +172,7 @@ const Project = () => {
               : <></>
           }
         </div>
-        <div className='grid w-full grid-cols-4 auto-rows-max gap-4 p-4 text-center rounded-lg bg-bali-500'>
+        <div className='grid w-full grid-cols-4 gap-4 p-4 text-center rounded-lg auto-rows-max bg-bali-500'>
           <h3 className='col-span-4 text-2xl font-bold text-center'>Equipos</h3>
           {
             project.teams.map(team => {
@@ -179,7 +181,7 @@ const Project = () => {
                   <Link
                     key={team._id}
                     to={`/team/${team._id}`}
-                    className='flex h-max flex-col items-center mx-auto text-xl font-semibold text-white border-2 border-white rounded-b-lg bg-crimson-500 w-max'
+                    className='flex flex-col items-center mx-auto text-xl font-semibold text-white border-2 border-white rounded-b-lg h-max bg-crimson-500 w-max'
                   >
                     <img src={URL + team.logoUrl} alt={team.name} className='object-cover w-52 h-52 bg-white/50' />
                     <h2 className='mt-auto'>{team.name}</h2>

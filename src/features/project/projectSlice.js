@@ -14,7 +14,7 @@ export const createProject = createAsyncThunk('project/createProject', (data, th
   const formData = new FormData()
   formData.append('idBoss', data.idBoss)
   formData.append('name', data.name)
-  formData.append('logo', data.logo[0], data.logo[0].name)
+  if (data.logo.length === 1) formData.append('logo', data.logo[0], data.logo[0].name)
   // console.table(Object.fromEntries(formData))
   return postFile('/projects', formData)
     .then(res => {

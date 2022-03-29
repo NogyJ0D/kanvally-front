@@ -1,8 +1,14 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { post, put, del } from '../../api'
+import FormData from 'form-data'
+import { post, put, del, postFile } from '../../api'
 
-export const createComment = createAsyncThunk('task/createComment', ({ teamId, idTask, username, text }, thunkAPI) => {
-  return put(`/tasks/comment/team/${teamId}/option/add/idTask/${idTask}`, ({ username, text }))
+export const createComment = createAsyncThunk('task/createComment', ({ teamId, idTask, username, text, file }, thunkAPI) => {
+  const formData = new FormData()
+  formData.append('username', username)
+  formData.append('text', text)
+  if (file.length === 1) formData.append('file', file[0], file[0].name)
+  // console.table(Object.fromEntries(formData))
+  return postFile(`/tasks/comment/team/${teamId}/option/add/idTask/${idTask}`, formData)
     .then(res => {
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data
@@ -37,11 +43,19 @@ export const changeState = createAsyncThunk('task/changeState', (data, thunkAPI)
     })
 })
 
+export const deleteComment = createAsyncThunk('task/deleteComment', ({ idTeam, idTask, idComment }, thunkAPI) => {
+  return put(`/tasks/comment/team/${idTeam}/option/delete/idTask/${idTask}`, { idComment })
+    .then(res => {
+      if (res.fail) return thunkAPI.rejectWithValue(res.err)
+      else return res.data
+    })
+})
+
 const taskSlice = createSlice({
   name: 'task',
   initialState: {
     exists: false,
-    loading: true,
+    loading: false,
     error: false,
     message: undefined,
 
@@ -54,6 +68,9 @@ const taskSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
+    builder.addCase(createComment.pending, (state, action) => {
+      state.loading = true
+    })
     builder.addCase(createComment.fulfilled, (state, { payload }) => {
       state.exists = true
       state.loading = false
@@ -89,6 +106,12 @@ const taskSlice = createSlice({
     })
 
     builder.addCase(changeState.rejected, (state, { payload }) => {
+      state.loading = false
+      state.error = true
+      state.message = payload
+    })
+
+    builder.addCase(deleteComment.rejected, (state, { payload }) => {
       state.loading = false
       state.error = true
       state.message = payload
