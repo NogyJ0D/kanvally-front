@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { URL } from '../config'
 import { changeState, createComment, deleteComment, deleteTask } from '../features/task/taskSlice'
 import Modal from './Modal'
 
@@ -25,8 +24,8 @@ const TaskItem = ({ task, color, userRole, provided, innerRef }) => {
       })
   }
 
-  const onNewComment = ({ text, file }) => {
-    dispatch(createComment({ teamId: team.id, idTask: task._id, username: user.username, text, file }))
+  const onNewComment = ({ text }) => {
+    dispatch(createComment({ teamId: team.id, idTask: task._id, username: user.username, text }))
       .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
   }
 
@@ -108,13 +107,6 @@ const TaskItem = ({ task, color, userRole, provided, innerRef }) => {
               className='w-full px-4 py-2 text-black bg-white border border-black rounded-lg outline-none'
               {...register2('text', { required: true })}
             />
-            <label htmlFor='file' className='text-xl font-semibold'>Adjuntar archivo (opcional):</label>
-            <input
-              id='file'
-              className='pl-8 file:px-4 file:py-1 file:bg-crimson-500 file:text-white file:border-ebony-clay-500 file:border file:rounded-full file:outline-none'
-              type='file'
-              {...register2('file')}
-            />
           </form>
           {
             task.comments?.map(comment => {
@@ -126,9 +118,6 @@ const TaskItem = ({ task, color, userRole, provided, innerRef }) => {
                   </div>
                   <p className='w-full px-4 py-2 text-black bg-white border border-black rounded-lg outline-none'>{comment.text}</p>
                   <div className='flex justify-between'>
-                    {
-                      comment.fileUrl && <a href={URL + comment.fileUrl} target='_blank' rel='noreferrer' download={comment.fileKey} className='px-2 text-lg font-semibold text-blue-800 underline'>Descargar archivo</a>
-                    }
                     {
                       (comment.username === user.username || userRole === 'Líder') &&
                         <button onClick={() => onDelete(comment._id)} className='px-2 py-1 font-semibold text-white border border-white rounded-lg w-max bg-crimson-500'>Eliminar</button>

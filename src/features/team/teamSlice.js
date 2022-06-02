@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import FormData from 'form-data'
-import { del, get, post, postFile, put } from '../../api'
+import { get, post, put } from '../../api'
 
 // export const createTeam = createAsyncThunk('team/createTeam', ({ projectId, data }, thunkAPI) => {
 //   return post(`/teams/${projectId}`, data)
@@ -11,11 +10,8 @@ import { del, get, post, postFile, put } from '../../api'
 // })
 
 export const createTeam = createAsyncThunk('team/createTeam', ({ projectId, data }, thunkAPI) => {
-  const formData = new FormData()
-  formData.append('name', data.name)
-  formData.append('idLeader', data.idLeader)
-  formData.append('logo', data.logo[0], data.logo[0].name)
-  return postFile(`/teams/${projectId}`, formData)
+  console.log(data)
+  return post(`/teams/${projectId}`, { name: data.name, idLeader: data.idLeader, logoUrl: data.logoUrl })
     .then(res => {
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data

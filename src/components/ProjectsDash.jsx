@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
-import { URL } from '../config'
 import { createProject } from '../features/project/projectSlice'
 import { getProjects } from '../features/user/userSlice'
 import Modal from '../components/Modal'
@@ -16,8 +15,8 @@ const ProjectsDash = ({ user }) => {
     handleSubmit
   } = useForm()
 
-  const onSubmit = async ({ name, logo }) => {
-    await dispatch(createProject({ name, logo, idBoss: user.id }))
+  const onSubmit = async ({ name, logoUrl }) => {
+    await dispatch(createProject({ name, logoUrl, idBoss: user.id }))
     return navigate(0)
   }
 
@@ -42,12 +41,12 @@ const ProjectsDash = ({ user }) => {
                 {...register('name', { required: true })}
               />
 
-              <label htmlFor='file' className='font-semibold text-xl'>Logo del proyecto:</label>
               <input
-                id='file'
-                className='pl-8 file:px-4 file:py-1 file:bg-crimson-500 file:text-white file:border-ebony-clay-500 file:border file:rounded-full file:outline-none'
-                type='file'
-                {...register('logo')}
+                id='logo'
+                className='px-4 py-1 text-black border rounded-full outline-none border-ebony-clay-500 placeholder:text-black/50'
+                type='text'
+                placeholder='Logo del proyecto'
+                {...register('logoUrl')}
               />
               <button className='w-full py-1 text-xl text-white border border-black rounded-full bg-crimson-500 place-self-center'>Crear</button>
             </form>
@@ -70,7 +69,7 @@ const ProjectsDash = ({ user }) => {
               to={`/project/${project._id}`}
               className='flex flex-col items-center mx-auto text-xl font-semibold text-white border-2 border-white rounded-b-lg bg-crimson-500 w-max'
             >
-              <img src={URL + project.logoUrl} alt={project.name} className='object-fill w-64 h-64 bg-white/50' />
+              <img src={project.logoUrl} alt={project.name} className='object-fill w-64 h-64 bg-white/50' />
               <h2 className='mt-auto'>{project.name}</h2>
             </Link>
           )

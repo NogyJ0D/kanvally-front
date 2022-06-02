@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import FormData from 'form-data'
-import { del, get, postFile, put } from '../../api'
+import { del, get, post, put } from '../../api'
 
 export const getById = createAsyncThunk('project/getById', ({ id, userid }, thunkAPI) => {
   return get(`/projects/${id}/${userid}/all`)
@@ -11,12 +10,7 @@ export const getById = createAsyncThunk('project/getById', ({ id, userid }, thun
 })
 
 export const createProject = createAsyncThunk('project/createProject', (data, thunkAPI) => {
-  const formData = new FormData()
-  formData.append('idBoss', data.idBoss)
-  formData.append('name', data.name)
-  if (data.logo.length === 1) formData.append('logo', data.logo[0], data.logo[0].name)
-  // console.table(Object.fromEntries(formData))
-  return postFile('/projects', formData)
+  return post('/projects', data)
     .then(res => {
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data

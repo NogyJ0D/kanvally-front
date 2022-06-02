@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { URL } from '../config'
 import { clearProjectMessage, deleteProject, expelFromProject, getById, inviteToProject } from '../features/project/projectSlice'
 import { clearTeamMessage, createTeam } from '../features/team/teamSlice'
 import Modal from '../components/Modal'
@@ -11,7 +10,6 @@ const Project = () => {
   const dispatch = useDispatch()
   const user = useSelector(state => state.user)
   const project = useSelector(state => state.project)
-  const team = useSelector(state => state.team)
   const { id } = useParams()
   const navigate = useNavigate()
   const { register, handleSubmit } = useForm()
@@ -47,8 +45,8 @@ const Project = () => {
       .then(res => console.log(res))
   }
 
-  const onTeamCreate = ({ name, idLeader, logo }) => {
-    dispatch(createTeam({ projectId: project.id, data: { name, idLeader, logo } }))
+  const onTeamCreate = ({ name, idLeader, logoUrl }) => {
+    dispatch(createTeam({ projectId: project.id, data: { name, idLeader, logoUrl } }))
       .then(res => {
         if (res.meta.requestStatus === 'fulfilled') return navigate(0)
       })
@@ -119,12 +117,11 @@ const Project = () => {
                 placeholder='Nombre del equipo'
                 required {...register('name', { required: true })}
               />
-              <label htmlFor='file' className='text-xl font-semibold'>Logo del equipo:</label>
               <input
-                id='file'
-                className='pl-8 file:px-4 file:py-1 file:bg-crimson-500 file:text-white file:border-ebony-clay-500 file:border file:rounded-full file:outline-none'
-                type='file'
-                {...register('logo')}
+                className='px-4 py-1 text-black border rounded-full outline-none border-ebony-clay-500 placeholder:text-black/50'
+                type='text'
+                placeholder='Logo del equipo (url)'
+                {...register('logoUrl')}
               />
               <label htmlFor='idLeader'>Líder del equipo:</label>
               <select
@@ -157,7 +154,7 @@ const Project = () => {
       }
       <div className='flex gap-4'>
         <div className='flex flex-col gap-4 p-4 text-center rounded-lg bg-bali-500 w-max'>
-          <img src={URL + project.logoUrl} alt={project.name} className='bg-white/50' width='250' height='250' />
+          <img src={project.logoUrl} alt={project.name} className='bg-white/50' width='250' height='250' />
           <h2 className='text-3xl font-bold text-bali-900'>{project.name}</h2>
           <button onClick={() => setOpenMembers(true)} className='px-2 py-1 font-bold text-white border-2 border-white rounded-lg bg-crimson-500'>Ver miembros</button>
           {
@@ -183,7 +180,7 @@ const Project = () => {
                     to={`/team/${team._id}`}
                     className='flex flex-col items-center mx-auto text-xl font-semibold text-white border-2 border-white rounded-b-lg h-max bg-crimson-500 w-max'
                   >
-                    <img src={URL + team.logoUrl} alt={team.name} className='object-cover w-52 h-52 bg-white/50' />
+                    <img src={team.logoUrl} alt={team.name} className='object-cover w-52 h-52 bg-white/50' />
                     <h2 className='mt-auto'>{team.name}</h2>
                   </Link>
                 )

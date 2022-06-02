@@ -15,7 +15,6 @@ const Signup = () => {
   } = useForm()
 
   const onSubmit = (data) => {
-    data.profile_pic = data.profile_pic || 'https://pixabay.com/get/g3e714de2b5dcb9b1bd334b388b26cadd405c372ac964155cb84647a6719fdcd5610e34e57e0912332db970e20d84ff77_640.png'
     dispatch(signup(data))
   }
 

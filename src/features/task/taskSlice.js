@@ -1,14 +1,9 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import FormData from 'form-data'
-import { post, put, del, postFile } from '../../api'
+import { post, put, del } from '../../api'
 
-export const createComment = createAsyncThunk('task/createComment', ({ teamId, idTask, username, text, file }, thunkAPI) => {
-  const formData = new FormData()
-  formData.append('username', username)
-  formData.append('text', text)
-  if (file.length === 1) formData.append('file', file[0], file[0].name)
-  // console.table(Object.fromEntries(formData))
-  return postFile(`/tasks/comment/team/${teamId}/option/add/idTask/${idTask}`, formData)
+export const createComment = createAsyncThunk('task/createComment', (data, thunkAPI) => {
+  console.log(data)
+  return put(`/tasks/comment/team/${data.teamId}/option/add/idTask/${data.idTask}`, data)
     .then(res => {
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data
@@ -75,7 +70,7 @@ const taskSlice = createSlice({
       state.exists = true
       state.loading = false
 
-      state.members = payload.comments
+      state.comments = payload.comments
     })
     builder.addCase(createComment.rejected, (state, { payload }) => {
       state.loading = false
