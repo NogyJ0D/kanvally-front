@@ -1,28 +1,26 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
-import { Link, useNavigate } from 'react-router-dom'
-import { createProject } from '../features/project/projectSlice'
-import { getProjects } from '../features/user/userSlice'
+import { Link } from 'react-router-dom'
+import { getProjects, createProject } from '../features/userSlice'
 import Modal from '../components/Modal'
 
 const ProjectsDash = ({ user }) => {
   const [openCreate, setOpenCreate] = useState(false)
   const dispatch = useDispatch()
-  const navigate = useNavigate()
   const {
     register,
     handleSubmit
   } = useForm()
 
-  const onSubmit = async ({ name, logoUrl }) => {
-    await dispatch(createProject({ name, logoUrl, idBoss: user.id }))
-    return navigate(0)
+  const onSubmit = ({ name, logoUrl }) => {
+    dispatch(createProject({ name, logoUrl, idBoss: user.id }))
+    return setOpenCreate(false)
   }
 
   useEffect(() => {
-    if (!user.loading && user.logged && user.role !== 0) dispatch(getProjects(user.id))
-  }, [user.loading])
+    if (user.logged) dispatch(getProjects(user.id))
+  }, [user.logged])
 
   return (
     <div className='flex flex-col gap-4 p-4 rounded-lg bg-bali-500'>
@@ -62,7 +60,7 @@ const ProjectsDash = ({ user }) => {
       </div>
       <div className='grid grid-cols-4 gap-4'>
         {
-        user.projects.map(project => {
+        user.projects?.map(project => {
           return (
             <Link
               key={project._id}

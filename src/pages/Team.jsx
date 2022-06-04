@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import Modal from '../components/Modal'
 import TaskList from '../components/TaskList'
-import { getById } from '../features/project/projectSlice'
-import { changeState, createTask } from '../features/task/taskSlice'
-import { changeRole, clearTeamMessage, expelFromTeam, getTeamById, inviteToTeam } from '../features/team/teamSlice'
+import { deleteTeam, getById } from '../features/projectSlice'
+import { changeRole, clearTeamMessage, expelFromTeam, getTeamById, inviteToTeam, createTask, changeState } from '../features/teamSlice'
 import { DragDropContext } from 'react-beautiful-dnd'
 
 const Team = () => {
@@ -14,28 +13,26 @@ const Team = () => {
   const { id } = useParams()
   const dispatch = useDispatch()
   const team = useSelector(state => state.team)
+  const navigate = useNavigate()
   const user = useSelector(state => state.user)
   const project = useSelector(state => state.project)
-  const navigate = useNavigate()
   const [openCreate, setOpenCreate] = useState(false)
   const [openMembers, setOpenMembers] = useState(false)
   const [openInvite, setOpenInvite] = useState(false)
   const [userRole, setUserRole] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
 
   useEffect(() => {
-    if (!user.loading && user.logged) {
+    if (!user.loading && !user.logged) return navigate('/', { replace: true })
+    else if (!user.loading && user.logged) {
       dispatch(getTeamById(id))
-        .then((res) => {
-          if (res.error) return navigate('/dashboard')
-          else {
-            if (!team.loading && team.exists) {
-              if (project.loading || !project.exists) dispatch(getById({ id: team.idProject, userid: user.id }))
-              setUserRole(team.members.filter(member => member._id._id === user.id)[0].role)
-            }
-          }
+        .then(res => {
+          if (res.meta.rejectedWithValue) return navigate('/dashboard', { replace: true })
+          if (!project.exists) dispatch(getById({ id: res.payload.idProject, userid: user.id }))
+          setUserRole(res.payload.members.filter(member => member._id._id === user.id)[0].role)
         })
     }
-  }, [user, team.loading])
+  }, [user.loading])
 
   useEffect(() => {
     dispatch(clearTeamMessage())
@@ -51,42 +48,44 @@ const Team = () => {
       description,
       state
     }))
-      .then((res) => {
-        if (res.meta.requestStatus === 'fulfilled') return navigate(0)
+      .then(res => {
+        if (res.meta.requestStatus === 'fulfilled') return setOpenCreate(false)
       })
   }
 
   const onInvite = ({ userid, role }) => {
     dispatch(inviteToTeam({ teamId: team.id, userid, role }))
-      .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
   }
 
   const onRoleChange = ({ userId, userRole }) => {
     dispatch(changeRole({ teamId: team.id, userId, userRole }))
-      .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
   }
 
   const onExpel = (userId) => {
     dispatch(expelFromTeam({ teamId: team.id, userId }))
-      .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
   }
 
   const onStateChange = (task) => {
     if (!task.destination || (task.source.droppableId === task.destination.droppableId)) return
     dispatch(changeState({ teamId: team.id, taskId: task.draggableId, state: task.destination.droppableId }))
-      .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
+  }
+
+  const onDelete = () => {
+    dispatch(deleteTeam({ projectId: team.id }))
+      .then(() => { return navigate(`/project/${project.id}`, { replace: true }) })
   }
 
   return (
     <>
       {
         openMembers &&
-          <Modal openModal={openMembers} setOpenModal={setOpenMembers} title='Miembros del proyecto'>
+          <Modal key='membersModal' openModal={openMembers} setOpenModal={setOpenMembers} title='Miembros del proyecto'>
             <p className='p-1 font-bold text-center border border-black rounded-lg bg-red-500/50'>Los Miembros solo pueden actualizar tareas hasta el estado "Probando", los Testers hasta "Listo".</p>
             {
               team.members.map(member => {
+                console.log(member)
                 return (
-                  <div key={member._id._id} className='relative flex items-center justify-between w-full gap-4 px-2 border-b group border-ebony-clay-500'>
+                  <div key={member._id._id + '_membersModal'} className='relative flex items-center justify-between w-full gap-4 px-2 border-b group border-ebony-clay-500'>
                     <p className='text-lg font-semibold'>{member._id.email}</p>
                     {
                       team.idLeader === user.id && member._id._id !== user.id
@@ -195,10 +194,13 @@ const Team = () => {
             <p className='w-full text-xl font-bold text-center text-crimson-500'>{team.message}</p>
           </Modal>
       }
-      <div className='flex flex-col gap-4'>
+      <div className='flex flex-col'>
 
-        <div className='flex gap-4 px-4 py-2 text-white rounded-lg bg-bali-500'>
-          <h3 className='text-3xl font-bold text-ebony-clay-500'>{team.name}</h3>
+        <div className='flex gap-4 px-4 py-2 text-white rounded-t-lg bg-bali-500'>
+          <div className='flex items-center gap-1 text-3xl font-bold text-ebony-clay-500'>
+            <Link to={`/project/${project.id}`} className='px-2 py-1 font-bold text-white underline border border-white rounded-lg bg-crimson-500 hover:bg-crimson-400'>{project.name || ''}</Link>
+            <p>{'  > ' + team.name}</p>
+          </div>
           <button
             onClick={() => setOpenMembers(true)}
             className='px-2 py-1 font-bold border border-white rounded-lg bg-crimson-500 hover:bg-crimson-400'
@@ -208,6 +210,25 @@ const Team = () => {
           {
             team.idLeader === user.id &&
               <>
+                {
+                  !deleteConfirm
+                    ? (
+                      <button
+                        onClick={() => setDeleteConfirm(true)}
+                        className='px-2 py-1 font-bold border border-white rounded-lg bg-crimson-500 hover:bg-crimson-400'
+                      >
+                        Eliminar equipo
+                      </button>
+                      )
+                    : (
+                      <button
+                        onClick={() => onDelete()}
+                        className='px-2 py-1 font-bold border border-white rounded-lg bg-crimson-500 hover:bg-crimson-400'
+                      >
+                        Confirmar
+                      </button>
+                      )
+                }
                 <button
                   onClick={() => setOpenCreate(true)}
                   className='px-2 py-1 font-bold border border-white rounded-lg bg-crimson-500 hover:bg-crimson-400'
@@ -224,8 +245,8 @@ const Team = () => {
           }
         </div>
 
-        <div className='p-4 rounded-lg bg-bali-500'>
-          <div className='flex space-x-8 overflow-x-auto'>
+        <div className='p-4 rounded-b-lg bg-bali-500'>
+          <div className='flex space-x-4 overflow-x-auto'>
             <DragDropContext onDragEnd={(res) => onStateChange(res)}>
               <TaskList tasks={team.tasks[0]} userRole={userRole} index='0' color='sky-300' state='CONGELADO' />
               <TaskList tasks={team.tasks[1]} userRole={userRole} index='1' color='red-500' state='EMERGENCIA' />

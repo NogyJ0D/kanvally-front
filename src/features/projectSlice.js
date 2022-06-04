@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { del, get, post, put } from '../../api'
+import { del, get, post, put } from '../api'
 
 export const getById = createAsyncThunk('project/getById', ({ id, userid }, thunkAPI) => {
   return get(`/projects/${id}/${userid}/all`)
@@ -9,18 +9,9 @@ export const getById = createAsyncThunk('project/getById', ({ id, userid }, thun
     })
 })
 
-export const createProject = createAsyncThunk('project/createProject', (data, thunkAPI) => {
-  return post('/projects', data)
-    .then(res => {
-      if (res.fail) return thunkAPI.rejectWithValue(res.err)
-      else return res.data
-    })
-})
-
 export const inviteToProject = createAsyncThunk('project/inviteToProject', (data, thunkAPI) => {
   return put(`/projects/invite/projectid/${data.projectId}`, data)
     .then(res => {
-      console.log(res)
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data.message
     })
@@ -29,16 +20,22 @@ export const inviteToProject = createAsyncThunk('project/inviteToProject', (data
 export const expelFromProject = createAsyncThunk('project/expelFromProject', (data, thunkAPI) => {
   return put(`/projects/expel/${data.projectId}/${data.userId}`, data)
     .then(res => {
-      console.log(res)
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
-      else return res.data.message
+      else return res.data
     })
 })
 
-export const deleteProject = createAsyncThunk('project/deleteProject', (projectId, thunkAPI) => {
-  return del(`/projects/${projectId}`)
+export const createTeam = createAsyncThunk('project/createTeam', ({ projectId, data }, thunkAPI) => {
+  return post(`/teams/${projectId}`, { name: data.name, idLeader: data.idLeader, logoUrl: data.logoUrl })
     .then(res => {
-      console.log(res)
+      if (res.fail) return thunkAPI.rejectWithValue(res.err)
+      else return res.data
+    })
+})
+
+export const deleteTeam = createAsyncThunk('project/deleteTeam', ({ projectId }, thunkAPI) => {
+  return del(`/teams/${projectId}`)
+    .then(res => {
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data
     })
@@ -63,6 +60,19 @@ const projectSlice = createSlice({
     clearProjectMessage (state, action) {
       state.error = false
       state.message = undefined
+    },
+    clearProject (state, action) {
+      state.exists = false
+      state.loading = true
+      state.error = false
+      state.message = undefined
+
+      state.id = undefined
+      state.name = undefined
+      state.idBoss = undefined
+      state.logoUrl = undefined
+      state.teams = []
+      state.members = []
     }
   },
   extraReducers: (builder) => {
@@ -83,15 +93,6 @@ const projectSlice = createSlice({
       state.message = payload
     })
 
-    builder.addCase(createProject.fulfilled, (state, { payload }) => {
-      state.loading = false
-    })
-    builder.addCase(createProject.rejected, (state, { payload }) => {
-      state.loading = false
-      state.error = true
-      state.message = payload
-    })
-
     builder.addCase(inviteToProject.pending, (state, action) => {
       state.message = 'Enviando invitación...'
     })
@@ -107,7 +108,7 @@ const projectSlice = createSlice({
 
     builder.addCase(expelFromProject.fulfilled, (state, { payload }) => {
       state.loading = false
-      state.message = payload
+      state.members = payload.projectMembers
     })
     builder.addCase(expelFromProject.rejected, (state, { payload }) => {
       state.loading = false
@@ -115,20 +116,29 @@ const projectSlice = createSlice({
       state.message = payload
     })
 
-    builder.addCase(deleteProject.fulfilled, (state, action) => {
-      state.exists = false
+    builder.addCase(createTeam.pending, (state, action) => {
       state.loading = true
-      state.error = false
-      state.message = undefined
-
-      state.id = undefined
-      state.name = undefined
-      state.idBoss = undefined
-      state.logoUrl = undefined
-      state.teams = []
-      state.members = []
     })
-    builder.addCase(deleteProject.rejected, (state, { payload }) => {
+    builder.addCase(createTeam.fulfilled, (state, { payload }) => {
+      state.loading = false
+
+      state.teams = payload.teams
+    })
+    builder.addCase(createTeam.rejected, (state, { payload }) => {
+      state.loading = false
+      state.error = true
+      state.message = payload
+    })
+
+    builder.addCase(deleteTeam.pending, (state, action) => {
+      state.loading = true
+    })
+    builder.addCase(deleteTeam.fulfilled, (state, { payload }) => {
+      state.loading = false
+
+      state.teams = payload.teams
+    })
+    builder.addCase(deleteTeam.rejected, (state, { payload }) => {
       state.loading = false
       state.error = true
       state.message = payload
@@ -136,5 +146,5 @@ const projectSlice = createSlice({
   }
 })
 
-export const { clearProjectMessage } = projectSlice.actions
+export const { clearProjectMessage, clearProject } = projectSlice.actions
 export default projectSlice.reducer

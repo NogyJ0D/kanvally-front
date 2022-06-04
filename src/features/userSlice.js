@@ -1,10 +1,9 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { get, post } from '../../api'
+import { del, get, post } from '../api'
 
 export const login = createAsyncThunk('user/login', ({ email, password }, thunkAPI) => {
   return post('/auth/login', { email, password })
     .then(res => {
-      console.log(res)
       if (res.fail) return thunkAPI.rejectWithValue(res.err)
       else return res.data
     })
@@ -39,6 +38,22 @@ export const logout = createAsyncThunk('user/logout', (nullDefault, thunkAPI) =>
     .then(res => { return res.data })
 })
 
+export const createProject = createAsyncThunk('user/createProject', (data, thunkAPI) => {
+  return post('/projects', data)
+    .then(res => {
+      if (res.fail) return thunkAPI.rejectWithValue(res.err)
+      else return res.data
+    })
+})
+
+export const deleteProject = createAsyncThunk('user/deleteProject', (projectId, thunkAPI) => {
+  return del(`/projects/${projectId}`)
+    .then(res => {
+      if (res.fail) return thunkAPI.rejectWithValue(res.err)
+      else return res.data
+    })
+})
+
 const userSlice = createSlice({
   name: 'user',
   initialState: {
@@ -53,7 +68,6 @@ const userSlice = createSlice({
     lastname: undefined,
     id: undefined,
     role: undefined,
-    profile_pic: undefined,
     projects: []
   },
   reducers: {},
@@ -66,7 +80,6 @@ const userSlice = createSlice({
       state.firstname = payload.firstname
       state.id = payload.id
       state.lastname = payload.lastname
-      state.profile_pic = payload.profile_pic
       state.role = payload.role
       state.username = payload.username
     })
@@ -84,7 +97,6 @@ const userSlice = createSlice({
       state.firstname = payload.firstname
       state.id = payload.id
       state.lastname = payload.lastname
-      state.profile_pic = payload.profile_pic
       state.role = payload.role
       state.username = payload.username
     })
@@ -113,23 +125,37 @@ const userSlice = createSlice({
       state.lastname = undefined
       state.id = undefined
       state.role = undefined
-      state.profile_pic = undefined
       state.projects = []
     })
 
     builder.addCase(signup.fulfilled, (state, { payload }) => {
       state.loading = false
-      state.logged = true
 
-      state.email = payload.email
-      state.firstname = payload.firstname
-      state.id = payload.id
-      state.lastname = payload.lastname
-      state.profile_pic = payload.profile_pic
-      state.role = payload.role
-      state.username = payload.username
+      state.message = payload.message
     })
     builder.addCase(signup.rejected, (state, { payload }) => {
+      state.loading = false
+      state.error = true
+      state.message = payload
+    })
+
+    builder.addCase(createProject.fulfilled, (state, { payload }) => {
+      state.loading = false
+      state.projects = payload.userProjects
+    })
+    builder.addCase(createProject.rejected, (state, { payload }) => {
+      state.loading = false
+      state.error = true
+      state.message = payload
+    })
+
+    builder.addCase(deleteProject.fulfilled, (state, { payload }) => {
+      state.error = false
+      state.message = undefined
+
+      state.projects = payload.projects
+    })
+    builder.addCase(deleteProject.rejected, (state, { payload }) => {
       state.loading = false
       state.error = true
       state.message = payload

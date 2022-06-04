@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { clearProjectMessage, deleteProject, expelFromProject, getById, inviteToProject } from '../features/project/projectSlice'
-import { clearTeamMessage, createTeam } from '../features/team/teamSlice'
+import { clearProjectMessage, clearProject, expelFromProject, getById, inviteToProject, createTeam } from '../features/projectSlice'
+import { clearTeamMessage } from '../features/teamSlice'
 import Modal from '../components/Modal'
+import { deleteProject } from '../features/userSlice'
 
 const Project = () => {
   const dispatch = useDispatch()
@@ -18,15 +19,15 @@ const Project = () => {
   const [openTeam, setOpenTeam] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
 
-  useEffect(() => {
-    if (!user.loading) {
-      dispatch(getById({ id, userid: user.id }))
+  useEffect(async () => {
+    if (!user.loading && user.logged) {
+      await dispatch(getById({ id, userid: user.id }))
       if (!project.loading) {
         if (project.exists) document.title = `Kanvally - ${project.name}`
         else navigate('/dashboard')
       }
-    }
-  }, [user])
+    } else if (!user.loading && !user.logged) navigate('/')
+  }, [user.loading, project.loading])
 
   useEffect(() => {
     dispatch(clearProjectMessage())
@@ -35,28 +36,21 @@ const Project = () => {
 
   const onExpel = (userId) => {
     dispatch(expelFromProject({ projectId: project.id, userId }))
-      .then(res => {
-        if (res.meta.requestStatus === 'fulfilled') return navigate(0)
-      })
   }
 
   const onInvite = ({ email }) => {
     dispatch(inviteToProject({ projectId: project.id, userEmail: email }))
-      .then(res => console.log(res))
   }
 
   const onTeamCreate = ({ name, idLeader, logoUrl }) => {
     dispatch(createTeam({ projectId: project.id, data: { name, idLeader, logoUrl } }))
-      .then(res => {
-        if (res.meta.requestStatus === 'fulfilled') return navigate(0)
-      })
+    return setOpenTeam(false)
   }
 
-  const onDelete = () => {
-    dispatch(deleteProject(project.id))
-      .then(res => {
-        if (res.meta.requestStatus === 'fulfilled') return navigate('/dashboard')
-      })
+  const onDelete = async () => {
+    await dispatch(deleteProject(project.id))
+    clearProject()
+    return navigate('/dashboard')
   }
 
   return (
@@ -69,7 +63,7 @@ const Project = () => {
                 return (
                   <div key={member._id._id} className='relative flex items-center justify-between w-full gap-4 px-2 border-b group border-ebony-clay-500'>
                     <p className='text-lg font-semibold'>{member._id.email}</p>
-                    <div className='absolute hidden gap-4 px-2 text-xl font-bold text-white rounded-md w-max max-h-min bg-black/80 group-hover:flex inset-y-full'>
+                    <div className='absolute z-10 hidden gap-4 px-2 text-xl font-bold text-white rounded-md w-max max-h-min bg-black group-hover:flex inset-y-full'>
                       <small className='select-none'>Usuario:</small>
                       <p>{member._id.username}</p>
                     </div>
@@ -172,7 +166,7 @@ const Project = () => {
         <div className='grid w-full grid-cols-4 gap-4 p-4 text-center rounded-lg auto-rows-max bg-bali-500'>
           <h3 className='col-span-4 text-2xl font-bold text-center'>Equipos</h3>
           {
-            project.teams.map(team => {
+            project.teams?.map(team => {
               if (team.members.some(member => member._id === user.id)) {
                 return (
                   <Link

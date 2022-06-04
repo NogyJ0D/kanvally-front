@@ -3,8 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ProjectsDash from '../components/ProjectsDash'
 import ProfileDash from '../components/ProfileDash'
-// import { getById } from '../features/project/projectSlice'
-import { logout } from '../features/user/userSlice'
+import { logout } from '../features//userSlice'
 
 const Dashboard = () => {
   const user = useSelector(state => state.user)
@@ -13,14 +12,13 @@ const Dashboard = () => {
   const [visible, setVisible] = useState(0)
 
   useEffect(() => {
-    if (!user.loading && !user.logged) return navigate('/')
-    else document.title = 'Kanvally - Dashboard'
-  }, [user])
+    document.title = 'Kanvally - Dashboard'
+  }, [])
 
   const onLogout = () => {
     dispatch(logout())
       .then(res => {
-        if (res.payload.loggedOut) return navigate('/')
+        return navigate('/')
       })
   }
 

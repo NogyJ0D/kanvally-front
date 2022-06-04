@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
-import { login } from '../features/user/userSlice'
+import { login } from '../features/userSlice'
 
 const Login = () => {
   const { register, handleSubmit } = useForm()
@@ -50,7 +50,7 @@ const Login = () => {
         <button className='w-full py-1 text-xl text-white border border-black rounded-full bg-crimson-500 place-self-center'>Iniciar</button>
       </form>
 
-      <Link to='/signup' className='px-2 py-1'>¿No tienes cuenta? <b className='text-crimson-500'>Creala</b></Link>
+      <Link to='/signup' className='px-2 py-1'>¿No tienes cuenta? <b className='text-crimson-500'>Créala</b></Link>
     </div>
   )
 }

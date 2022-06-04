@@ -11,7 +11,7 @@ const Layout = () => {
         <nav className='flex flex-col justify-between px-8 text-2xl font-semibold sm:flex-row'>
           <NavLink className='h-full p-2 hover:bg-ebony-clay-300' to='/'>Kanvally</NavLink>
           <div className='flex items-center gap-2'>
-            <NavLink className='h-full p-2 hover:bg-ebony-clay-300' to={-1}>Volver</NavLink>
+            <NavLink className='h-full p-2 hover:bg-ebony-clay-300' to={-1} replace>Volver</NavLink>
             {
             user.logged
               ? <NavLink className='h-full p-2 hover:bg-ebony-clay-300' to='/dashboard'>Mi dashboard</NavLink>

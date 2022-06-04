@@ -1,8 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
-import userReducer from '../features/user/userSlice'
-import projectReducer from '../features/project/projectSlice'
-import teamReducer from '../features/team/teamSlice'
-import taskReducer from '../features/task/taskSlice'
+import userReducer from '../features/userSlice'
+import projectReducer from '../features/projectSlice'
+import teamReducer from '../features/teamSlice'
+import taskReducer from '../features/taskSlice'
 
 const store = configureStore({
   reducer: {

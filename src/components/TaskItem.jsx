@@ -2,8 +2,8 @@ import { DateTime } from 'luxon'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-import { changeState, createComment, deleteComment, deleteTask } from '../features/task/taskSlice'
+import { createComment, deleteComment, getComments } from '../features/taskSlice'
+import { deleteTask, changeState } from '../features/teamSlice'
 import Modal from './Modal'
 
 const TaskItem = ({ task, color, userRole, provided, innerRef }) => {
@@ -12,31 +12,23 @@ const TaskItem = ({ task, color, userRole, provided, innerRef }) => {
   const [openTask, setOpenTask] = useState(false)
   const team = useSelector(state => state.team)
   const user = useSelector(state => state.user)
-  const taskState = useSelector(state => state.task)
+  const comments = useSelector(state => state.task)
   const dispatch = useDispatch()
-  const navigate = useNavigate()
 
   const onTaskDelete = () => {
     dispatch(deleteTask({ teamId: team.id, taskId: task._id }))
-      .then(res => {
-        console.log(res)
-        if (res.meta.requestStatus === 'fulfilled') return navigate(0)
-      })
   }
 
   const onNewComment = ({ text }) => {
     dispatch(createComment({ teamId: team.id, idTask: task._id, username: user.username, text }))
-      .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
   }
 
   const onDelete = (id) => {
     dispatch(deleteComment({ idTeam: team.id, idTask: task._id, idComment: id }))
-      .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
   }
 
   const onStateChange = ({ state }) => {
     dispatch(changeState({ teamId: team.id, taskId: task._id, state }))
-      .then(res => { if (res.meta.requestStatus === 'fulfilled') return navigate(0) })
   }
 
   return (
@@ -45,7 +37,7 @@ const TaskItem = ({ task, color, userRole, provided, innerRef }) => {
         {...provided.draggableProps}
         {...provided.dragHandleProps}
         ref={innerRef}
-        onClick={() => { setOpenTask(true) }} className={`p-4 text-center mx-auto bg-${color} w-full text-ebony-clay-500 text-xl font-semibold`}
+        onClick={() => { dispatch(getComments({ id: task._id, idTeam: team.id })); setOpenTask(true) }} className={`p-4 text-center mx-auto bg-${color} w-full text-ebony-clay-500 text-xl font-semibold`}
       >
         {task.name}
       </div>
@@ -60,7 +52,7 @@ const TaskItem = ({ task, color, userRole, provided, innerRef }) => {
             team.idLeader === user.id &&
               <>
                 <button onClick={() => onTaskDelete()} className='w-full px-2 font-bold text-white border border-white rounded-lg bg-crimson-500'>Eliminar tarea</button>
-                <p className='w-full text-xl font-bold text-center text-crimson-500'>{taskState.message}</p>
+                <p className='w-full text-xl font-bold text-center text-crimson-500'>{team.message}</p>
               </>
           }
           <form onChange={handleSubmit1(onStateChange)} className='flex items-center justify-center gap-4 px-2 py-1 rounded-lg bg-white/50'>
@@ -109,12 +101,12 @@ const TaskItem = ({ task, color, userRole, provided, innerRef }) => {
             />
           </form>
           {
-            task.comments?.map(comment => {
+            comments.comments?.map(comment => {
               return (
                 <div key={comment._id} className='flex flex-col w-full gap-2 px-2 py-1 border-2 border-black rounded-lg bg-white/50'>
                   <div className='flex justify-between'>
                     <p className='px-2 py-1 text-xl font-semibold border border-white rounded-lg'>{comment.username}</p>
-                    <p className='px-2 py-1 text-lg font-semibold border border-white rounded-lg'>{DateTime.fromISO(comment.created_date).toLocaleString({ day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className='px-2 py-1 text-lg font-semibold border border-white rounded-lg'>{new Date(comment.created_at).toLocaleString()}</p>
                   </div>
                   <p className='w-full px-4 py-2 text-black bg-white border border-black rounded-lg outline-none'>{comment.text}</p>
                   <div className='flex justify-between'>
